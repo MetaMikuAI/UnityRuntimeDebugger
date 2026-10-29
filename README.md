@@ -2,6 +2,8 @@
 
 Unity 运行时调试器：浏览场景与对象、读写成员、调用方法、执行 C#、Hook 方法。提供网页控制台、HTTP API 与命令行。
 
+![screenshot](docs/screenshot.png)
+
 | 加载器 | 状态 |
 | --- | --- |
 | BepInEx 6 IL2CPP | 支持（Windows、Android） |
