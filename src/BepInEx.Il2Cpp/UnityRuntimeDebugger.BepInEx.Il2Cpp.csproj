@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    The BepInEx 6 IL2CPP plugin: Core's sources and the IL2CPP adapter in one UnityRuntimeDebugger.dll,
+    Roslyn embedded with Costura. Compiles against BepInEx's NuGet packages and IL2CPP reference
+    libraries; with BepInExDir set (local.props) the DLL is also copied to $(BepInExDir)/plugins.
+  -->
+  <PropertyGroup>
+    <CompileCoreSources>true</CompileCoreSources>
+  </PropertyGroup>
+  <Import Project="../Core/Core.props" />
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <AssemblyName>UnityRuntimeDebugger</AssemblyName>
+    <RootNamespace>UnityRuntimeDebugger.Il2Cpp</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>None</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
+    <RestoreAdditionalProjectSources>https://nuget.bepinex.dev/v3/index.json</RestoreAdditionalProjectSources>
+    <!-- BepInEx.Unity.IL2CPP asks for a Cpp2IL build the feed no longer has; only its compile assets are used. -->
+    <NoWarn>$(NoWarn);NU1603</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BepInEx.PluginInfoProps" Version="2.1.0" />
+    <PackageReference Include="BepInEx.Unity.IL2CPP" Version="6.0.0-be.788" IncludeAssets="compile" PrivateAssets="all" />
+    <PackageReference Include="Il2CppInterop.ReferenceLibs" Version="1.0.0" IncludeAssets="compile" PrivateAssets="all" />
+    <PackageReference Include="Costura.Fody" Version="6.2.0" PrivateAssets="all" />
+    <PackageReference Include="Fody" Version="6.9.3" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- Builds Core first, which builds web/dist. -->
+  <ItemGroup>
+    <ProjectReference Include="../Core/Core.csproj" ReferenceOutputAssembly="false" Private="false" />
+  </ItemGroup>
+
+  <Target Name="CopyToBepInEx" AfterTargets="Build" Condition="'$(BepInExDir)' != ''">
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(BepInExDir)/plugins" />
+  </Target>
+</Project>

@@ -1,0 +1,13 @@
+bin/
+obj/
+node_modules/
+web/dist/
+test-results/
+playwright-report/
+*.user
+.vs/
+.idea/
+local.props
+__pycache__/
+*.pyc
+FodyWeavers.xsd

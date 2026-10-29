@@ -1,0 +1,34 @@
+<Project>
+  <!--
+    Everything that makes up the loader-independent debugger. Core.csproj builds it as a library
+    for tests and the fake game; loader projects set CompileCoreSources and compile the same sources
+    into their plugin assembly, so console scripts can reference these types from a file-backed DLL.
+  -->
+  <PropertyGroup>
+    <CoreDir>$(MSBuildThisFileDirectory)</CoreDir>
+    <WebDist>$(RepoRoot)web/dist/</WebDist>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(CompileCoreSources)' == 'true'">
+    <Compile Include="$(CoreDir)**/*.cs" Exclude="$(CoreDir)bin/**;$(CoreDir)obj/**" Link="Core/%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="$(CoreDir)Help/*.md" LogicalName="urdbg/help/%(Filename)%(Extension)" />
+    <EmbeddedResource Include="$(RepoRoot)cli/urdbg.py" LogicalName="urdbg/cli/urdbg.py" />
+  </ItemGroup>
+
+  <!-- Globbed late: on a clean build web/dist only appears once the web build has run. -->
+  <Target Name="EmbedWebDist" AfterTargets="ResolveReferences" BeforeTargets="PrepareResources">
+    <Error Condition="!Exists('$(WebDist)index.html')" Text="web/dist is missing. Build src/Core (it runs the web build) or run `npm ci &amp;&amp; npm run build` in web/." />
+    <ItemGroup>
+      <_WebFile Include="$(WebDist)**/*" />
+      <EmbeddedResource Include="@(_WebFile)" LogicalName="urdbg/web/%(_WebFile.RecursiveDir)%(_WebFile.Filename)%(_WebFile.Extension)" />
+    </ItemGroup>
+  </Target>
+</Project>

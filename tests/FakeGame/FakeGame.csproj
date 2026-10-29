@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    A stand-in game for developing and testing the debugger without Unity: a tiny UnityEngine-shaped
+    API, a generic scene with behaviours that tick every frame, and an IGame over it.
+    Run from the repo root: dotnet run (project tests/FakeGame), arguments [port] [token].
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>Assembly-CSharp</AssemblyName>
+    <RootNamespace>FakeGame</RootNamespace>
+    <Nullable>disable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Core/Core.csproj" />
+  </ItemGroup>
+</Project>

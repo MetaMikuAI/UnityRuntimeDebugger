@@ -1,0 +1,19 @@
+<Project>
+  <!-- Builds the web UI (web/dist) before the assembly that embeds it. Pass -p:SkipWeb=true to embed an existing dist. -->
+  <PropertyGroup>
+    <WebDir>$(RepoRoot)web/</WebDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <WebSource Include="$(WebDir)src/**/*;$(WebDir)index.html;$(WebDir)package.json;$(WebDir)vite.config.ts;$(WebDir)tsconfig.json" />
+  </ItemGroup>
+
+  <Target Name="WebInstall" Condition="'$(SkipWeb)' != 'true' And !Exists('$(WebDir)node_modules')">
+    <Exec Command="npm ci" WorkingDirectory="$(WebDir)" />
+  </Target>
+
+  <Target Name="WebBuild" BeforeTargets="BeforeBuild" DependsOnTargets="WebInstall" Condition="'$(SkipWeb)' != 'true'"
+          Inputs="@(WebSource)" Outputs="$(WebDir)dist/index.html">
+    <Exec Command="npm run build" WorkingDirectory="$(WebDir)" />
+  </Target>
+</Project>

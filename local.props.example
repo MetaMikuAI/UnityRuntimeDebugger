@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <!-- Optional: also copy the built plugin to $(BepInExDir)/plugins. -->
+    <BepInExDir>C:\Games\MyGame\BepInEx</BepInExDir>
+  </PropertyGroup>
+</Project>

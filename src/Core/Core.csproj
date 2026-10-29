@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="Core.props" />
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <AssemblyName>UnityRuntimeDebugger.Core</AssemblyName>
+    <RootNamespace>UnityRuntimeDebugger</RootNamespace>
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="HarmonyX" Version="2.16.0" />
+    <InternalsVisibleTo Include="UnityRuntimeDebugger.Core.Tests" />
+  </ItemGroup>
+
+  <Import Project="$(RepoRoot)web/web.targets" />
+</Project>
