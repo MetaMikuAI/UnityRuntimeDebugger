@@ -1,7 +1,7 @@
 {
   "name": "unity-runtime-debugger-web",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "description": "Web console of Unity Runtime Debugger, embedded into the plugin DLL.",
   "license": "AGPL-3.0-only",

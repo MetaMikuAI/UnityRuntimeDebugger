@@ -37,7 +37,7 @@ public class ApiTests : IClassFixture<FakeGameProcess>
         Assert.Equal("null", Kind((await _game.Eval("(string)null")).GetProperty("value")));
         Assert.False((await _game.Eval("var unused = 1;")).TryGetProperty("value", out _));
         var printed = await _game.Eval("Console.WriteLine(\"hi\"); 1 + 1");
-        Assert.Equal("hi\n", printed.GetProperty("output").GetString());
+        Assert.Equal("hi" + Environment.NewLine, printed.GetProperty("output").GetString());
         Assert.Equal("2", printed.GetProperty("value").GetProperty("text").GetString());
     }
 
