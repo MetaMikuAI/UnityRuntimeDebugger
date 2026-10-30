@@ -20,7 +20,7 @@ export function TopBar() {
     <header class="topbar">
       <div class="brand">
         <Mark class="brand-mark" />
-        <span class="brand-name">Unity Runtime Debugger</span>
+        <a class="brand-name" href="https://github.com/MetaMikuAI/UnityRuntimeDebugger" target="_blank" rel="noopener noreferrer" title="打开 GitHub 仓库">Unity Runtime Debugger</a>
         <span class="brand-game">{game ? `${game.product} ${game.version}` : ''}</span>
       </div>
       <button class="palette-trigger" type="button" onClick={() => (paletteOpen.value = true)}>
