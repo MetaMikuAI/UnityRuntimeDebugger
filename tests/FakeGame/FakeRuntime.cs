@@ -13,6 +13,15 @@ internal sealed class FakeRuntime : ManagedRuntime
 {
     private const int MaxFoldedIl = 8;
 
+    public override FieldAttributes? NativeFieldAttributes(PropertyInfo property)
+        => property.DeclaringType != typeof(NativeFieldExample) ? null : property.Name switch
+        {
+            nameof(NativeFieldExample.Constant) => FieldAttributes.Public | FieldAttributes.Static | FieldAttributes.Literal,
+            nameof(NativeFieldExample.ReadOnly) => FieldAttributes.Public | FieldAttributes.Static | FieldAttributes.InitOnly,
+            nameof(NativeFieldExample.Mutable) => FieldAttributes.Public | FieldAttributes.Static,
+            _ => null,
+        };
+
     private readonly Lazy<Dictionary<string, List<MethodInfo>>> _groups = new(() => typeof(FakeRuntime).Assembly.GetTypes()
         .SelectMany(t => t.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly))
         .Where(m => !m.IsAbstract && !m.ContainsGenericParameters)

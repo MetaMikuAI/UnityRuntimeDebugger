@@ -134,23 +134,24 @@ public sealed class MemberReader
                 if (property.GetIndexParameters().Length > 0 || property.GetMethod?.IsPublic != true || IsObsoleteShortcut(t, property) || !seen.Add(property.Name))
                     continue;
 
-                var native = _runtime.IsNativeField(property);
+                var native = _runtime.NativeFieldAttributes(property);
                 var view = new MemberView
                 {
                     Name = property.Name,
-                    Kind = native ? MemberKind.Field : MemberKind.Property,
-                    Native = native ? true : null,
+                    Kind = native == null ? MemberKind.Property
+                        : (native.Value & FieldAttributes.Literal) != 0 ? MemberKind.Constant : MemberKind.Field,
+                    Native = native != null ? true : null,
                     Type = TypeNames.Display(property.PropertyType),
                     DeclaringType = declaring,
                     Depth = depth,
                     Static = statics ? true : null,
                 };
-                SetEditor(view, property.PropertyType, property.SetMethod?.IsPublic == true && !boxedStruct);
+                SetEditor(view, property.PropertyType, CanWrite(property, native) && !boxedStruct);
 
                 var sideEffect = SideEffectGetters.Contains(t.FullName + "." + property.Name);
                 if (only == null && sideEffect)
                     view.Lazy = LazyReason.SideEffect;
-                else if (only == null && statics && !native && !readStatics)
+                else if (only == null && statics && native == null && !readStatics)
                     view.Lazy = LazyReason.Static;
                 else
                     ReadInto(view, () => property.GetValue(instance));
@@ -181,12 +182,16 @@ public sealed class MemberReader
 
         var property = type.GetProperties(flags).FirstOrDefault(p => p.Name == name && p.GetIndexParameters().Length == 0)
                        ?? throw new MissingMemberException($"no member named '{name}'");
-        if (property.SetMethod?.IsPublic != true)
+        if (!CanWrite(property, _runtime.NativeFieldAttributes(property)))
             throw new InvalidOperationException($"{name} is read-only");
 
         property.SetValue(instance, _parser.Convert(value, property.PropertyType));
         return ReadOne(target, name);
     }
+
+    private static bool CanWrite(PropertyInfo property, FieldAttributes? native)
+        => property.SetMethod?.IsPublic == true
+           && (native.GetValueOrDefault() & (FieldAttributes.Literal | FieldAttributes.InitOnly)) == 0;
 
     /// <summary>The type and its listed base types, most derived first.</summary>
     public List<string> Bases(Type type)

@@ -112,6 +112,38 @@ public class ApiTests : IClassFixture<FakeGameProcess>
         Assert.True(page.GetProperty("more").GetBoolean());
     }
 
+    [Theory]
+    [InlineData("Constant", "constant")]
+    [InlineData("ReadOnly", "field")]
+    public async Task NativeFieldsRejectWritesDespitePublicSetters(string name, string kind)
+    {
+        var (_, type) = await _game.Get("/api/types/DerivedNativeFieldExample");
+        var handle = type.GetProperty("handle").GetInt32();
+        var (_, member) = await _game.Get($"/api/objects/{handle}/members/{name}");
+        Assert.Equal(kind, member.GetProperty("kind").GetString());
+        Assert.True(member.GetProperty("native").GetBoolean());
+        Assert.False(member.TryGetProperty("writable", out var writable) && writable.GetBoolean());
+
+        var (status, error) = await _game.Put($"/api/objects/{handle}/members/{name}", new { value = "0.5" });
+        Assert.Equal(400, status);
+        Assert.Contains("read-only", error.GetProperty("error").GetProperty("message").GetString());
+        var (_, calls) = await _game.Get($"/api/objects/{handle}/members/SetterCalls");
+        Assert.Equal("0", calls.GetProperty("value").GetProperty("text").GetString());
+    }
+
+    [Fact]
+    public async Task NativeFieldsAllowMutableFloatWrites()
+    {
+        var (_, type) = await _game.Get("/api/types/DerivedNativeFieldExample");
+        var handle = type.GetProperty("handle").GetInt32();
+        var (status, member) = await _game.Put($"/api/objects/{handle}/members/Mutable", new { value = "0.5" });
+        Assert.Equal(200, status);
+        Assert.Equal("field", member.GetProperty("kind").GetString());
+        Assert.True(member.GetProperty("native").GetBoolean());
+        Assert.True(member.GetProperty("writable").GetBoolean());
+        Assert.Equal("0.5", member.GetProperty("value").GetProperty("text").GetString());
+    }
+
     [Fact]
     public async Task DestroyedObjectsAnswerGone()
     {

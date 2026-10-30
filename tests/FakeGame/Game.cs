@@ -150,3 +150,16 @@ public sealed class HealthBar : MonoBehaviour
 
     public float Fraction => player == null ? 0 : player.health / (float)player.maxHealth;
 }
+
+// Interop exposes native constants and readonly fields as properties with public setters.
+public class NativeFieldExample
+{
+    public static int SetterCalls { get; private set; }
+    public static float Constant { get => 0.2f; set => SetterCalls++; }
+    public static float ReadOnly { get => 0.05f; set => SetterCalls++; }
+    public static float Mutable { get; set; } = 1f;
+}
+
+public sealed class DerivedNativeFieldExample : NativeFieldExample
+{
+}

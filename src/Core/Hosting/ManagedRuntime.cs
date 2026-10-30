@@ -19,7 +19,7 @@ public class ManagedRuntime : IRuntime
 
     public virtual bool IsRootType(Type type) => type == typeof(object) || type == typeof(ValueType) || type == typeof(Enum);
 
-    public virtual bool IsNativeField(PropertyInfo property) => false;
+    public virtual FieldAttributes? NativeFieldAttributes(PropertyInfo property) => null;
 
     public virtual bool TryToString(object value, out string? text)
     {

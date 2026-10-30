@@ -16,7 +16,7 @@ namespace UnityRuntimeDebugger.Il2Cpp;
 internal sealed class Il2CppRuntime : ManagedRuntime
 {
     private static readonly Dictionary<IntPtr, Type?> ClassToType = new();
-    private static readonly Dictionary<PropertyInfo, bool> NativeFields = new();
+    private static readonly Dictionary<PropertyInfo, FieldAttributes?> NativeFields = new();
     private static readonly MethodInfo UnboxMethod = typeof(Il2CppObjectBase).GetMethod(nameof(Il2CppObjectBase.Unbox))!;
     private static readonly MethodInfo PoolGet = typeof(Il2CppObjectPool).GetMethod(nameof(Il2CppObjectPool.Get))!;
 
@@ -87,17 +87,24 @@ internal sealed class Il2CppRuntime : ManagedRuntime
         => base.IsRootType(type) || type == typeof(Il2CppObjectBase) || type.FullName is "Il2CppSystem.Object" or "Il2CppSystem.ValueType" or "Il2CppSystem.Enum";
 
     /// <summary>The interop generator emits a private static <c>NativeFieldInfoPtr_&lt;name&gt;</c> next to each field property.</summary>
-    public override bool IsNativeField(PropertyInfo property)
+    public override FieldAttributes? NativeFieldAttributes(PropertyInfo property)
     {
         lock (NativeFields)
         {
-            if (!NativeFields.TryGetValue(property, out var native))
+            if (NativeFields.TryGetValue(property, out var attributes))
+                return attributes;
+
+            var field = property.DeclaringType?.GetField("NativeFieldInfoPtr_" + property.Name,
+                BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.DeclaredOnly);
+            if (field != null)
             {
-                NativeFields[property] = native = property.DeclaringType?.GetField("NativeFieldInfoPtr_" + property.Name,
-                    BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.DeclaredOnly) != null;
+                var pointer = (IntPtr)field.GetValue(null)!;
+                if (pointer == IntPtr.Zero)
+                    throw new InvalidOperationException($"native field not found: {property.DeclaringType?.FullName}.{property.Name}");
+                attributes = (FieldAttributes)IL2CPP.il2cpp_field_get_flags(pointer);
             }
 
-            return native;
+            return NativeFields[property] = attributes;
         }
     }
 

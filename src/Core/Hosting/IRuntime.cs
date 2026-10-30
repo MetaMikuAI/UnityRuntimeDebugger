@@ -35,8 +35,8 @@ public interface IRuntime
     /// <summary>Base types that add nothing worth listing (object, Il2CppSystem.Object...).</summary>
     bool IsRootType(Type type);
 
-    /// <summary>A property that stands for a native field (interop generators emit fields as properties).</summary>
-    bool IsNativeField(PropertyInfo property);
+    /// <summary>Native field flags behind an interop property, or null for an ordinary property.</summary>
+    FieldAttributes? NativeFieldAttributes(PropertyInfo property);
 
     /// <summary>
     /// Text for a native object: true when the runtime handled the value, with null text when its
