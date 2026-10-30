@@ -30,10 +30,25 @@ onBoot(() => refreshHooks());
 
 export function HooksPanel() {
   useEffect(() => {
-    if (!token.value) return;
-    const timer = setInterval(() => drawerTab.value === 'hooks' && !document.hidden && refreshHooks(), 2000);
-    return () => clearInterval(timer);
-  }, [token.value]);
+    if (!token.value || drawerTab.value !== 'hooks') return;
+    let pending = false;
+    const refresh = async () => {
+      if (pending || document.hidden) return;
+      pending = true;
+      try {
+        await refreshHooks();
+      } finally {
+        pending = false;
+      }
+    };
+    refresh();
+    const timer = setInterval(refresh, 250);
+    document.addEventListener('visibilitychange', refresh);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', refresh);
+    };
+  }, [token.value, drawerTab.value]);
 
   const selected = hooks.value.find(h => h.id === selectedHook.value);
   return (
@@ -83,7 +98,7 @@ function HookItem({ hook: h, selected }: { hook: Hook; selected: boolean }) {
       <div class="hook-sig mono" title={h.method}>{h.signature}</div>
       <div class="hook-meta">
         <span class={`hook-action a-${h.action}`}>{actionLabel[h.action]}{h.action === 'return' && h.returnValue ? ` = ${h.returnValue}` : ''}</span>
-        <span class="mono" title="命中次数 / 已记录">{h.hits.toLocaleString()} / {h.recorded.toLocaleString()}</span>
+        <span class="mono" title="累计命中次数 / 累计已记录条数（清空列表不会重置）">{h.hits.toLocaleString()} / {h.recorded.toLocaleString()}</span>
         {h.dropped > 0 && <span class="mono warn" title="超过每秒 200 条的调用只计数不记录">限流 {h.dropped}</span>}
         {folded > 0 && <span class="mono warn" title={`ICF：与 ${folded} 个方法共用同一份机器码；来自其他类的调用（${h.foreign}）已放行`}><Icon name="warning" />ICF {folded}</span>}
         <span class="spacer" />
@@ -111,7 +126,7 @@ function CallStream({ hook }: { hook: Hook }) {
     (async () => {
       while (!abort.signal.aborted) {
         try {
-          const page = await api.calls(hook.id, cursor, cursor < 0 ? 0 : 20, abort.signal);
+          const page = await api.calls(hook.id, cursor, 20, abort.signal);
           cursor = page.cursor;
           const fresh = page.calls ?? [];
           if (fresh.length) setCalls(c => [...c, ...fresh].slice(-MaxCalls));
